@@ -1,0 +1,116 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.base_field_override.media.remote_video.name
+    - field.field.media.remote_video.feeds_item
+    - field.field.media.remote_video.field_media_in_library
+    - field.field.media.remote_video.field_media_oembed_video
+    - media.type.remote_video
+  module:
+    - feeds_ex
+    - feeds_tamper
+    - media
+third_party_settings:
+  feeds_tamper:
+    tampers:
+      5f889731-3dff-4474-90e8-3dc69c218b0f:
+        text: '1'
+        plugin: rewrite
+        source: 'true'
+        weight: 0
+        label: Rewrite
+        uuid: 5f889731-3dff-4474-90e8-3dc69c218b0f
+      8e162ab7-5682-4cc5-a1c5-38aace3c1def:
+        text: 'https://www.youtube.com/watch?v=[resourceid_videoid]'
+        plugin: rewrite
+        source: resourceid_videoid
+        weight: 0
+        label: Rewrite
+        uuid: 8e162ab7-5682-4cc5-a1c5-38aace3c1def
+_core:
+  default_config_hash: 2LCA20EtXy6Qv_idby6VEhpxu8v1kG-B_vyjudkxlto
+label: 'YouTube Playlist'
+id: youtube_playlist
+description: 'The <em>YouTube</em> feed used for importing playlist videos from YouTube.'
+help: ''
+import_period: 3600
+fetcher: http
+fetcher_configuration:
+  auto_detect_feeds: false
+  use_pubsubhubbub: false
+  fallback_hub: ''
+  request_timeout: 30
+parser: jsonpath
+parser_configuration:
+  context:
+    value: '$.items.*.snippet'
+  sources:
+    resourceid_videoid:
+      label: resourceId.videoId
+      value: resourceId.videoId
+    title:
+      label: title
+      value: title
+    'true':
+      label: 'true'
+      value: 'true'
+  display_errors: false
+  source_encoding:
+    - auto
+  debug_mode: false
+  line_limit: 100
+processor: 'entity:media'
+processor_configuration:
+  update_existing: 0
+  update_non_existent: _keep
+  expire: -1
+  owner_feed_author: false
+  owner_id: 0
+  authorize: true
+  skip_hash_check: false
+  values:
+    bundle: remote_video
+custom_sources:
+  id_videoid:
+    label: id.videoId
+    value: id.videoId
+    machine_name: id_videoid
+  snippet_title:
+    label: snippet.title
+    value: snippet.title
+    machine_name: snippet_title
+  'true':
+    label: 'true'
+    value: 'true'
+    machine_name: 'true'
+  resourceid_videoid:
+    label: resourceId.videoId
+    value: resourceId.videoId
+    machine_name: resourceid_videoid
+  title:
+    label: title
+    value: title
+    machine_name: title
+mappings:
+  -
+    target: field_media_oembed_video
+    map:
+      value: resourceid_videoid
+    unique: {  }
+  -
+    target: name
+    map:
+      value: title
+    unique: {  }
+  -
+    target: feeds_item
+    map:
+      url: resourceid_videoid
+      guid: resourceid_videoid
+    unique:
+      guid: '1'
+  -
+    target: field_media_in_library
+    map:
+      value: 'true'

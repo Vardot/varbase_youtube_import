@@ -1,0 +1,6 @@
+services:
+  varbase_youtube_import.event_subscriber:
+    class: Drupal\varbase_youtube_import\EventSubscriber\FetchAfterImport
+    arguments: []
+    tags:
+      - {name: event_subscriber}

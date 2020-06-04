@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - feeds.feed_type.youtube_playlist
+    - field.storage.feeds_feed.field_api_key
+id: feeds_feed.youtube_playlist.field_api_key
+field_name: field_api_key
+entity_type: feeds_feed
+bundle: youtube_playlist
+label: 'API key'
+description: 'To create an API key, visit <a href=''https://developers.google.com/youtube/v3/getting-started''>YouTube API key</a>'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

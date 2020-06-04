@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * @file
+ * Varbase YouTube Import hook implementations.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements form_alter().
+ */
+function varbase_youtube_import_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
+  if ($form_id == 'feeds_feed_youtube_channel_form') {
+    $form['plugin']['fetcher']['source']['#description'] = t('This field should contain a youtube channel link.');
+    $form['plugin']['fetcher']['source']['#title'] = t('YouTube URL');
+  }
+  elseif ($form_id == 'feeds_feed_youtube_playlist_form') {
+    $form['plugin']['fetcher']['source']['#description'] = t('This field should contain a youtube playlist link.');
+    $form['plugin']['fetcher']['source']['#title'] = t('YouTube URL');
+  }
+}
+
+/**
+ * Implements entity_presave().
+ *
+ * This function will used to replace the youtube playlist/channel
+ * link to their RSS feed link.
+ */
+function varbase_youtube_import_entity_presave(EntityInterface $entity) {
+  if ($entity->getEntityType()->id() == 'feeds_feed') {
+    if ($entity->get('type')->target_id == 'youtube_channel') {
+      if (strpos($entity->get('source')->value, 'googleapis') == FALSE) {
+        $api = $entity->get('field_api_key')->value;
+        $link = $entity->get('source')->value;
+        $pos = strpos($link, '/channel/');
+        $link_id = substr($link, $pos + 9);
+        $feed_link = 'https://www.googleapis.com/youtube/v3/search?order=date&part=snippet&type=video&channelId=' . $link_id . '&maxResults=50&key=' . $api;
+        $entity->set('source', $feed_link, TRUE);
+      }
+      else {
+        $field_api = $entity->get('field_api_key')->value;
+        $link = $entity->get('source')->value;
+        $key_pos = strpos($link, '&key=');
+        $token_pos = strpos($link, '&pageToken=');
+        $old_api = substr($link, $key_pos + 5);
+        if ($old_api !== $field_api) {
+          if (!(strpos($entity->get('source')->value, 'pageToken'))) {
+            $feed_link = substr($entity->get('source')->value, 0, $key_pos);
+            $feed_link = $feed_link . '&key=' . $field_api;
+            $entity->set('source', $feed_link, TRUE);
+          }
+          else {
+            $feed_link = substr($entity->get('source')->value, 0, $key_pos);
+            $token = substr($entity->get('source')->value, $token_pos + 11);
+            $feed_link = $feed_link . '&key=' . $field_api . '&pageToken=' . $token;
+            $entity->set('source', $feed_link, TRUE);
+          }
+        }
+      }
+    }
+    elseif ($entity->get('type')->target_id == 'youtube_playlist') {
+      if (strpos($entity->get('source')->value, 'googleapis') == FALSE) {
+        $api = $entity->get('field_api_key')->value;
+        $link = $entity->get('source')->value;
+        $pos = strpos($link, 'list=');
+        $link_id = substr($link, $pos + 5);
+        $feed_link = 'https://www.googleapis.com/youtube/v3/playlistItems?order=date&part=snippet&playlistId=' . $link_id . '&maxResults=50&key=' . $api;
+        $entity->set('source', $feed_link, TRUE);
+      }
+      else {
+        $field_api = $entity->get('field_api_key')->value;
+        $link = $entity->get('source')->value;
+        $key_pos = strpos($link, '&key=');
+        $token_pos = strpos($link, '&pageToken=');
+        $old_api = substr($link, $key_pos + 5);
+        if ($old_api !== $field_api) {
+          if (!(strpos($entity->get('source')->value, 'pageToken'))) {
+            $feed_link = substr($entity->get('source')->value, 0, $key_pos);
+            $feed_link = $feed_link . '&key=' . $field_api;
+            $entity->set('source', $feed_link, TRUE);
+          }
+          else {
+            $feed_link = substr($entity->get('source')->value, 0, $key_pos);
+            $token = substr($entity->get('source')->value, $token_pos + 11);
+            $feed_link = $feed_link . '&key=' . $field_api . '&pageToken=' . $token;
+            $entity->set('source', $feed_link, TRUE);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "drupal/varbase_youtube_import",
+  "description": "Feed type that imports from YouTube channels and playlists.",
+  "type": "drupal-module"
+}

@@ -1,5 +1,46 @@
 {
   "name": "drupal/varbase_youtube_import",
   "description": "Feed type that imports from YouTube channels and playlists.",
-  "type": "drupal-module"
+  "type": "drupal-module",
+  "homepage": "https://www.drupal.org/project/varbase_youtube_import",
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Vardot",
+      "homepage": "https://www.drupal.org/vardot",
+      "role": "Maintainer"
+    }
+  ],
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/varbase_youtube_import",
+    "source": "http://cgit.drupalcode.org/varbase_workflow"
+  },
+  "repositories": {
+    "drupal": {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+      },
+    "assets": {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  },
+  "require": {
+    "composer/installers": "~1.0 || ~2.0",
+    "oomphinc/composer-installers-extender": "~1.0 || ~2.0",
+    "cweagans/composer-patches": "~1.0",
+    "drupal/core": "~8.0 || ~9.0",
+    "drupal/feeds": "~3.0",
+    "drupal/feeds_ex": "~1.0",
+    "drupal/feeds_tamper": "~2.0"
+  },
+  "extra": {
+    "installer-types": [
+      "bower-asset",
+      "npm-asset"
+    ],
+    "enable-patching": true,
+    "composer-exit-on-patch-failure": true
+  }
 }

@@ -2,7 +2,7 @@ name: 'Varbase YouTube Import'
 description: 'Feed type that imports from YouTube channels and playlists.'
 type: module
 package: Varbase
-core_version_requirement: ^9 || ^10
+core_version_requirement: ~10.1.0
 dependencies:
   - feeds:feeds
   - feeds_ex:feeds_ex

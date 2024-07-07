@@ -16,7 +16,7 @@ class FetchAfterImport implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     $events = [];
     $events[FeedsEvents::IMPORT_FINISHED][] = 'afterImport';
     return $events;

@@ -23,7 +23,7 @@
     }
   },
   "require": {
-    "drupal/core": "~10.4.0 || ~11.1.0",
+    "drupal/core": "~10.6.0 || ~11.3.0",
     "vardot/varbase-patches": "~9 || ~10",
     "drupal/feeds": "~3",
     "drupal/feeds_ex": "~1",

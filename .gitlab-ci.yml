@@ -4,7 +4,7 @@
 #
 # The lint jobs (composer-lint, cspell, eslint, phpcs, phpstan, stylelint) keep
 # the template default, advisory, as this branch has not been linted before.
-# The composer build and phpunit gate the pipeline.
+# The composer build, phpunit and the install job gate the pipeline.
 ################################################################################
 include:
   - project: $_GITLAB_TEMPLATES_REPO
@@ -15,17 +15,26 @@ include:
       - "/includes/include.drupalci.workflows.yml"
 
 variables:
-  # The branch declares core ~10.6.0 || ~11.3.0; it is tested on the latest Drupal 10.6.
-  DRUPAL_CORE: "10.6.9"
+  # The branch declares core ~10.6.0 || ~11.4.0. It is built on Drupal
+  # 11.4 (Varbase 10.1 and 9.2), and on Drupal 10.6 by the previous major variant.
+  DRUPAL_CORE: "11.4.12"
   IGNORE_PROJECT_DRUPAL_CORE_VERSION: "1"
+  OPT_IN_TEST_PREVIOUS_MAJOR: 1
   # No yarn.lock is committed; Yarn 4 would refuse to create one in CI.
   YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
 
+# Allow the Varbase stack Composer plugins in the CI build (allow-plugins lives
+# in varbase_project, not modules).
 composer:
+  before_script:
+    - composer config --no-plugins allow-plugins.composer/installers true
+    - composer config --no-plugins allow-plugins.cweagans/composer-patches true
+    - composer config --no-plugins allow-plugins.oomphinc/composer-installers-extender true
+    - composer config --no-plugins allow-plugins.vardot/varbase-patches true
   variables:
     # The template's composer job sets DRUPAL_CORE itself, which overrides the
     # global value above, so the pin has to be on the job.
-    DRUPAL_CORE: "10.6.9"
+    DRUPAL_CORE: "11.4.12"
 
 .composer-base:
   variables:
@@ -43,3 +52,29 @@ eslint:
   variables:
     # The project .eslintrc.json extends airbnb-base: resolve it from Drupal core's node_modules.
     NODE_PATH: $CI_PROJECT_DIR/web/core/node_modules
+
+# Install the module on the Drupal 11.4 build, next to Varbase Media 10.1 (which
+# provides the remote_video media type and field_media_in_library it maps to).
+install:
+  extends: .testing-job-base
+  needs: [composer]
+  services:
+    - name: $_CONFIG_DOCKERHUB_ROOT/$_TARGET_DB_TYPE-$_TARGET_DB_VERSION:$_TARGET_DB_IMAGE_TAG
+      alias: database
+  script:
+    - cd $CI_PROJECT_DIR
+    - composer require --no-interaction --no-progress "drupal/varbase_media:~10.1.0"
+    - mkdir -p $_WEB_ROOT/sites/default/files && chmod -R 777 $_WEB_ROOT/sites/default
+    - DRUSH="vendor/bin/drush --root=$CI_PROJECT_DIR/$_WEB_ROOT"
+    - $DRUSH status --field=drupal-version
+    - $DRUSH site:install standard --db-url=mysql://$MYSQL_USER:$MYSQL_PASSWORD@database/$MYSQL_DATABASE -y
+    # Varbase Media's default recipe grants permissions to the Varbase roles,
+    # which the Varbase profile provides on a real site.
+    - for r in site_admin content_admin editor seo_admin; do $DRUSH role:create $r $r; done
+    - $DRUSH pm:install image drimage_improved -y
+    - $DRUSH pm:install varbase_media -y
+    - $DRUSH pm:install varbase_youtube_import -y
+    - $DRUSH pm:list --status=enabled --field=name | grep -x varbase_youtube_import
+    - $DRUSH config:get feeds.feed_type.youtube_channel id
+    - $DRUSH config:get feeds.feed_type.youtube_playlist id
+  allow_failure: false
